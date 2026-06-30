@@ -1,18 +1,3 @@
-"""
-Loads the saved model and the held-out test set train.py wrote, then
-produces the two plots that matter for a portfolio writeup:
-
-  1. confusion_matrix.png — where the model's mistakes actually land.
-     A classifier confusing Good/Moderate is a much smaller problem
-     than one confusing Good/Unhealthy, and a plain accuracy number
-     can't tell you which one you have. The matrix can.
-
-  2. shap_summary.png — which features actually drove predictions,
-     and in which direction. This is the plot that turns "I trained a
-     model" into "I understand what my model is doing," which is the
-     difference recruiters are actually screening for.
-"""
-
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
