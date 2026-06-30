@@ -1,30 +1,3 @@
-"""
-Trains the XGBoost classifier and saves it.
-
-Two-stage evaluation, on purpose:
-
-  1. TimeSeriesSplit cross-validation across the training portion.
-     This is a sanity check, not the final number — it tells you
-     whether performance is stable across different historical
-     windows, or whether one lucky/unlucky split is driving the
-     result.
-  2. A single chronological train/test split, where the test set is
-     the most recent TEST_HOLDOUT_DAYS days. This produces the
-     headline numbers (classification report, confusion matrix, SHAP)
-     because it mirrors how the model will actually be used: trained
-     on the past, evaluated on days it has never seen, in order.
-
-Why TimeSeriesSplit and never train_test_split(shuffle=True): a
-random shuffle would scatter future days into the training set and
-past days into the test set. The model would then partially "know
-the future" before being asked to predict it — its lag features for
-a January test row could come from a December training row that's
-chronologically AFTER some other training row. That's leakage, and
-it makes validation scores look better than real-world performance
-will be. Time series data only gets split one way: a hard line at
-some date, train before, test after.
-"""
-
 import argparse
 import json
 
