@@ -1,9 +1,3 @@
-"""
-Shared constants. Every other script imports from here instead of
-hardcoding paths or magic numbers — change a threshold once, it
-applies everywhere.
-"""
-
 from pathlib import Path
 
 # ---- paths -----------------------------------------------------------
