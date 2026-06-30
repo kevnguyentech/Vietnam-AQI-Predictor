@@ -1,32 +1,3 @@
-"""
-Turns the daily pm25+weather table into a supervised learning table.
-
-Framing, which matters more than the code: each row represents
-"today" (day t). The features available are everything you'd
-actually have in hand on day t if you were really doing this:
-  - your own PM2.5 history up through today (lags, rolling stats)
-  - tomorrow's WEATHER FORECAST (temp/rain/wind/humidity for day t+1)
-The target is tomorrow's AQI category (day t+1).
-
-That second point is the one easy mistake to make here, so it's
-worth being explicit about it: weather forecasts for tomorrow are
-known today and reasonably accurate, so using them as a feature
-isn't leakage. Using tomorrow's PM2.5 reading as a feature WOULD be
-leakage, since that's the thing you're trying to predict. We never
-do that — pm25 only enters as a lag/rolling feature computed from
-data up to and including today.
-
-In this project, the weather "forecast" is approximated using the
-ACTUAL recorded weather for day t+1 (since we only have historical
-observed data, not archived forecasts). That's a reasonable stand-in
-for training, since next-day forecasts are usually close to the
-actual outcome, but it's a simplification worth knowing about: a
-production system would log the forecast as it was actually issued,
-not the ground truth, to avoid a train/serve skew where the model
-learns to expect more accurate "forecasts" than it'll get in
-production.
-"""
-
 import argparse
 
 import numpy as np
