@@ -12,7 +12,7 @@ It's also, deliberately, a complete reference implementation of a small
 time-series ML project: real data sourcing, leakage-safe feature
 engineering, time-aware cross-validation, class-imbalance handling, SHAP
 explainability, and a CLI tool you actually run. Each script's docstring
-explains the *why*, not just the *what*
+explains the *why*, not just the *what*.
 
 ## Quick start
 
