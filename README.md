@@ -12,8 +12,7 @@ It's also, deliberately, a complete reference implementation of a small
 time-series ML project: real data sourcing, leakage-safe feature
 engineering, time-aware cross-validation, class-imbalance handling, SHAP
 explainability, and a CLI tool you actually run. Each script's docstring
-explains the *why*, not just the *what* - read those if you're using this to
-learn the patterns rather than just the result.
+explains the *why*, not just the *what*
 
 ## Quick start
 
@@ -92,9 +91,7 @@ than at the other two classes, which makes sense: it's the majority class
 Moderate sit right next to each other on the PM2.5 scale, so confusing them
 is a near-miss, not a real error - and the confusion matrix confirms that's
 exactly what happens: the model never once confuses Good directly with
-Unhealthy. Every mistake is between adjacent categories. For a health
-warning system, that property matters more than the raw accuracy number
-does.
+Unhealthy. Every mistake is between adjacent categories.
 
 A 5-fold `TimeSeriesSplit` cross-validation check (on the training portion
 only, never touching the test set) shows accuracy ranging 0.78-0.93 and
@@ -113,9 +110,7 @@ pollutant with strong day-to-day persistence, not a red flag.
 ## Two mistakes I almost shipped
 
 Both were caught by writing diagnostics that check the model's behavior
-against domain knowledge, not just checking that the code runs. Leaving
-them in here on purpose, since catching this kind of thing matters more
-than getting it right on the first attempt.
+against domain knowledge, not just checking that the code runs. 
 
 **Compounding feedback in the smog-burst simulation.** The synthetic
 generator clusters Hanoi's winter pollution spikes into multi-day "burst"
