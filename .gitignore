@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+
+# Generated data and model artifacts — regenerate with the scripts in
+# src/, no need to commit them. Remove this section if you'd rather
+# check in the simulated dataset so the repo is runnable on clone
+# without running simulate_data.py first.
+data/raw/*
+data/processed/*
+models/*
+outputs/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!outputs/.gitkeep
+!outputs/*.png
