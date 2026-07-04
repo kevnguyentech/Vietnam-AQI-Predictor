@@ -47,16 +47,21 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
     the forecast dict standing in for "tomorrow's weather."
     """
     hist = history[history["date"] <= as_of_date].sort_values("date")
-    if len(hist) < max(LAG_DAYS + [ROLLING_WINDOW]):
+    min_history = max(max(LAG_DAYS) + 1, ROLLING_WINDOW)
+    if len(hist) < min_history:
         raise ValueError(
-            f"Need at least {max(LAG_DAYS + [ROLLING_WINDOW])} days of PM2.5 "
+            f"Need at least {min_history} days of PM2.5 "
             f"history before {as_of_date.date()}, only have {len(hist)}."
         )
 
     pm25_series = hist["pm25"].values
     row = {}
     for lag in LAG_DAYS:
-        row[f"pm25_lag_{lag}"] = pm25_series[-lag]
+        # pm25_series[-1] is as_of_date's own reading (today), so a lag of
+        # `lag` days back is index -(lag + 1). This must mirror
+        # features.py's df["pm25"].shift(lag), which for "today"'s row
+        # pulls the value from `lag` rows earlier - NOT today's own value.
+        row[f"pm25_lag_{lag}"] = pm25_series[-(lag + 1)]
     row["pm25_rolling_mean_7"] = pm25_series[-ROLLING_WINDOW:].mean()
     row["pm25_rolling_std_7"] = pm25_series[-ROLLING_WINDOW:].std()
 
