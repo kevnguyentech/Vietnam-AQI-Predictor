@@ -12,8 +12,8 @@ It's also, deliberately, a complete reference implementation of a small
 time-series ML project: real data sourcing, leakage-safe feature
 engineering, time-aware cross-validation, class-imbalance handling, SHAP
 explainability, and a CLI tool you actually run. Each script's docstring
-explains the *why*, not just the *what*.
-learn the patterns rather than just the result.
+explains the *why*, not just the *what*, so it's useful to read even
+if you're here to learn the patterns rather than just the result.
 
 ## Quick start
 
@@ -76,7 +76,7 @@ forecasts).
 
 ## Results
 
-On a 150-day held-out test set (the most recent data, Aug–Dec 2024 — see
+On a 150-day held-out test set (the most recent data, Aug–Dec 2024 - see
 "a mistake I almost shipped" below for why it's 150 days and not a smaller
 number):
 
