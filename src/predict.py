@@ -63,7 +63,10 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
         # pulls the value from `lag` rows earlier - NOT today's own value.
         row[f"pm25_lag_{lag}"] = pm25_series[-(lag + 1)]
     row["pm25_rolling_mean_7"] = pm25_series[-ROLLING_WINDOW:].mean()
-    row["pm25_rolling_std_7"] = pm25_series[-ROLLING_WINDOW:].std()
+    # ddof=1 to match pandas' df["pm25"].rolling(7).std() used in
+    # features.py, which is sample std (ddof=1), not numpy's default
+    # population std (ddof=0).
+    row["pm25_rolling_std_7"] = pm25_series[-ROLLING_WINDOW:].std(ddof=1)
 
     tomorrow = as_of_date + pd.Timedelta(days=1)
     row["month"] = tomorrow.month
