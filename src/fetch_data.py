@@ -62,15 +62,37 @@ def find_pm25_sensor(api_key: str, radius_m: int = 25_000) -> dict:
         )
 
     # Prefer a station with the most reporting history (datetimeLast -
-    # datetimeFirst). Fall back to the first result if that field is
-    # missing from the response.
-    station = results[0]
-    sensor = next(
-        (s for s in station["sensors"] if s["parameter"]["name"] == "pm25"),
-        None,
-    )
-    if sensor is None:
-        raise RuntimeError(f"Station '{station['name']}' has no pm25 sensor.")
+    # datetimeFirst on its pm25 sensor). Fall back to the first result
+    # if that field is missing from the response.
+    def pm25_sensor(station):
+        return next(
+            (s for s in station["sensors"] if s["parameter"]["name"] == "pm25"),
+            None,
+        )
+
+    def history_span(station):
+        sensor = pm25_sensor(station)
+        if sensor is None:
+            return None
+        first = sensor.get("datetimeFirst", {}).get("utc")
+        last = sensor.get("datetimeLast", {}).get("utc")
+        if not first or not last:
+            return None
+        return pd.Timestamp(last) - pd.Timestamp(first)
+
+    candidates = [r for r in results if pm25_sensor(r) is not None]
+    if not candidates:
+        raise RuntimeError(
+            f"None of the {len(results)} nearby stations have a pm25 sensor."
+        )
+
+    spans = [(r, history_span(r)) for r in candidates]
+    if any(span is not None for _, span in spans):
+        station = max(spans, key=lambda pair: pair[1] or pd.Timedelta(0))[0]
+    else:
+        station = candidates[0]
+
+    sensor = pm25_sensor(station)
 
     print(f"Using station: {station['name']} (location_id={station['id']}, "
           f"sensor_id={sensor['id']})")
