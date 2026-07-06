@@ -48,7 +48,8 @@ def test_live_lag_features_match_training(toy_df):
     )
 
     for col in ["pm25_lag_1", "pm25_lag_3", "pm25_lag_7",
-                "pm25_rolling_mean_7", "pm25_rolling_std_7"]:
+                "pm25_rolling_mean_7", "pm25_rolling_std_7",
+                "month", "day_of_week", "is_weekend"]:
         assert live_row[col].values[0] == pytest.approx(train_row[col].values[0]), (
             f"{col} mismatch between live and training features"
         )

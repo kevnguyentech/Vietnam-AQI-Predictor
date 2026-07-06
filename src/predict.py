@@ -69,9 +69,11 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
     row["pm25_rolling_std_7"] = pm25_series[-ROLLING_WINDOW:].std(ddof=1)
 
     tomorrow = as_of_date + pd.Timedelta(days=1)
-    row["month"] = tomorrow.month
-    row["day_of_week"] = tomorrow.dayofweek
-    row["is_weekend"] = int(tomorrow.dayofweek >= 5)
+    # month/day_of_week/is_weekend mirror features.py's "calendar, known
+    # as of today" block, which uses the row's OWN date, not tomorrow's.
+    row["month"] = as_of_date.month
+    row["day_of_week"] = as_of_date.dayofweek
+    row["is_weekend"] = int(as_of_date.dayofweek >= 5)
 
     row["fcst_temp_max"] = forecast["temp_max"]
     row["fcst_temp_min"] = forecast["temp_min"]
