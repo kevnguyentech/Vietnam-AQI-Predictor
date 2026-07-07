@@ -117,14 +117,15 @@ def main():
     print(y.value_counts().rename(index=dict(enumerate(AQI_LABELS))))
     print()
 
-    run_cv_check(X, y)
-    print()
-
     # Final chronological split: last N days = test, everything else = train.
+    # Computed before the CV check below so it never sees the held-out days.
     split_idx = len(df) - args.test_days
     X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
     y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
     test_dates = df["date"].iloc[split_idx:]
+
+    run_cv_check(X_train, y_train)
+    print()
 
     print(f"--- Final model: train on first {len(X_train)} days, "
           f"test on last {len(X_test)} days ({test_dates.min().date()} to {test_dates.max().date()}) ---")
