@@ -45,6 +45,18 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values("date").reset_index(drop=True)
 
+    # Lag/rolling below shift by ROW position, not calendar date. If the
+    # input has a missing day (e.g. a sensor outage upstream in
+    # fetch_data.py), row-position shifting would silently treat the
+    # next available day as "yesterday" instead of failing or dropping
+    # it. Reindexing to a complete daily range turns any gap into an
+    # explicit NaN row, which the existing dropna() below already
+    # removes correctly, same effect as fetch_data.py's inner join
+    # already has when both sources are complete: this only changes
+    # behavior when there's a gap to catch.
+    full_range = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
+    df = df.set_index("date").reindex(full_range).rename_axis("date").reset_index()
+
     # --- AQI history, known as of "today" ---------------------------
     for lag in LAG_DAYS:
         df[f"pm25_lag_{lag}"] = df["pm25"].shift(lag)

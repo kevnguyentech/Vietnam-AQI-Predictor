@@ -59,3 +59,27 @@ def test_last_day_dropped(toy_df):
     out, feature_cols = build_features(toy_df)
     last_date = toy_df["date"].max()
     assert last_date not in out["date"].values
+
+
+def test_missing_day_drops_affected_row_instead_of_mislagging():
+    # A missing calendar day (e.g. a sensor outage upstream in
+    # fetch_data.py's real data) must not silently become "yesterday"
+    # for the next available row. Drop one day from a 30-day run and
+    # confirm the day right after the gap disappears from the output
+    # rather than getting a lag value that's actually 2+ days old.
+    dates = pd.date_range("2024-01-01", periods=30)
+    df = pd.DataFrame({
+        "date": dates,
+        "pm25": [10 + 10 * i for i in range(30)],
+        "temp_max": [25] * 30,
+        "temp_min": [15] * 30,
+        "precipitation": [0] * 30,
+        "wind_speed": [5] * 30,
+        "humidity": [60] * 30,
+    })
+    df_gap = df[df["date"] != "2024-01-20"].reset_index(drop=True)
+
+    out, feature_cols = build_features(df_gap)
+    assert pd.Timestamp("2024-01-21") not in out["date"].values, (
+        "row right after the gap should be dropped, not mislagged"
+    )
