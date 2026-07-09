@@ -40,7 +40,7 @@ from config import (
 WEATHER_COLS = ["temp_max", "temp_min", "precipitation", "wind_speed", "humidity"]
 
 
-def build_features(df: pd.DataFrame) -> pd.DataFrame:
+def build_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values("date").reset_index(drop=True)

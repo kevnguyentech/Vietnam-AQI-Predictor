@@ -83,3 +83,10 @@ def test_missing_day_drops_affected_row_instead_of_mislagging():
     assert pd.Timestamp("2024-01-21") not in out["date"].values, (
         "row right after the gap should be dropped, not mislagged"
     )
+
+def test_build_features_returns_feature_cols_as_list_of_strings(toy_df):
+    out, feature_cols = build_features(toy_df)
+    assert isinstance(feature_cols, list)
+    assert all(isinstance(c, str) for c in feature_cols)
+    assert len(feature_cols) > 0
+    assert "pm25" not in feature_cols  # raw reading must not leak in
