@@ -65,17 +65,17 @@ def test_insufficient_history_raises(toy_df):
 
     
 def test_load_model_missing_meta_exits(tmp_path, monkeypatch):
-    import predict
-    monkeypatch.setattr(predict, "MODEL_META_FILE", tmp_path / "no_meta.pkl")
+    import model_io
+    monkeypatch.setattr(model_io, "MODEL_META_FILE", tmp_path / "no_meta.pkl")
     with pytest.raises(SystemExit):
-        predict.load_model()
+        model_io.load_model()
 
 
 def test_load_model_missing_model_file_exits(tmp_path, monkeypatch):
-    import joblib, predict
+    import joblib, model_io
     fake_meta = tmp_path / "model_meta.pkl"
     joblib.dump({"feature_cols": [], "labels": []}, fake_meta)
-    monkeypatch.setattr(predict, "MODEL_META_FILE", fake_meta)
-    monkeypatch.setattr(predict, "MODEL_FILE", tmp_path / "no_model.json")
+    monkeypatch.setattr(model_io, "MODEL_META_FILE", fake_meta)
+    monkeypatch.setattr(model_io, "MODEL_FILE", tmp_path / "no_model.json")
     with pytest.raises(SystemExit):
-        predict.load_model()
+        model_io.load_model()

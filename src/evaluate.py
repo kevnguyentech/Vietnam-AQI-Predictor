@@ -13,22 +13,16 @@ produces the two plots that matter for a portfolio writeup:
      difference recruiters are actually screening for.
 """
 
-import joblib
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import shap
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
-from xgboost import XGBClassifier
 
-from config import MODEL_FILE, MODEL_META_FILE, MODELS_DIR, OUTPUTS_DIR, AQI_LABELS
-
-
-def load_model() -> tuple[XGBClassifier, dict]:
-    meta = joblib.load(MODEL_META_FILE)
-    model = XGBClassifier()
-    model.load_model(str(MODEL_FILE))
-    return model, meta
+from config import MODELS_DIR, OUTPUTS_DIR, AQI_LABELS
+from model_io import load_model
 
 
 def plot_confusion_matrix(y_true, y_pred):
@@ -100,7 +94,13 @@ def plot_shap_summary(model: XGBClassifier, X: pd.DataFrame):
 
 def main():
     model, meta = load_model()
-    test_df = pd.read_csv(MODELS_DIR / "test_predictions.csv")
+    test_predictions_path = MODELS_DIR / "test_predictions.csv"
+    if not test_predictions_path.exists():
+        sys.exit(
+            f"Test predictions not found at {test_predictions_path}.\n"
+            "Run: python src/train.py"
+        )
+    test_df = pd.read_csv(test_predictions_path)
 
     feature_cols = meta["feature_cols"]
     X_test = test_df[feature_cols]
