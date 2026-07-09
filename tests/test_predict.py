@@ -62,3 +62,20 @@ def test_insufficient_history_raises(toy_df):
                 "wind_speed": 5, "humidity": 60}
     with pytest.raises(ValueError):
         build_live_feature_row(short_history, pd.Timestamp("2024-01-05"), forecast)
+
+    
+def test_load_model_missing_meta_exits(tmp_path, monkeypatch):
+    import predict
+    monkeypatch.setattr(predict, "MODEL_META_FILE", tmp_path / "no_meta.pkl")
+    with pytest.raises(SystemExit):
+        predict.load_model()
+
+
+def test_load_model_missing_model_file_exits(tmp_path, monkeypatch):
+    import joblib, predict
+    fake_meta = tmp_path / "model_meta.pkl"
+    joblib.dump({"feature_cols": [], "labels": []}, fake_meta)
+    monkeypatch.setattr(predict, "MODEL_META_FILE", fake_meta)
+    monkeypatch.setattr(predict, "MODEL_FILE", tmp_path / "no_model.json")
+    with pytest.raises(SystemExit):
+        predict.load_model()

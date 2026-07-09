@@ -20,6 +20,7 @@ literal current date — see --date to override.
 """
 
 import argparse
+import sys
 
 import joblib
 import numpy as np
@@ -32,6 +33,16 @@ from config import (
 
 
 def load_model():
+    if not MODEL_META_FILE.exists():
+        sys.exit(
+            f"Model metadata not found at {MODEL_META_FILE}.\n"
+            "Run: python src/train.py"
+        )
+    if not MODEL_FILE.exists():
+        sys.exit(
+            f"Model file not found at {MODEL_FILE}.\n"
+            "Run: python src/train.py"
+        )
     meta = joblib.load(MODEL_META_FILE)
     model = XGBClassifier()
     model.load_model(str(MODEL_FILE))
@@ -87,6 +98,13 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    model, meta = load_model()
+    if not PROCESSED_FILE.exists():           
+        sys.exit(                              
+            f"Processed data not found at {PROCESSED_FILE}.\n"    
+            "Run: python src/simulate_data.py  "                   
+            "(or fetch_data.py for real data)"                     
+        )                                      
     parser.add_argument("--temp-max", type=float, required=True, help="forecasted high, °C")
     parser.add_argument("--temp-min", type=float, required=True, help="forecasted low, °C")
     parser.add_argument("--humidity", type=float, required=True, help="forecasted mean relative humidity, %%")
