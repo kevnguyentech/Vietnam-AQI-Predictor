@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import shap
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+from xgboost import XGBClassifier
 
 from config import MODELS_DIR, OUTPUTS_DIR, AQI_LABELS
 from model_io import load_model
