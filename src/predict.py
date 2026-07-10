@@ -82,13 +82,6 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    model, meta = load_model()
-    if not PROCESSED_FILE.exists():           
-        sys.exit(                              
-            f"Processed data not found at {PROCESSED_FILE}.\n"    
-            "Run: python src/simulate_data.py  "                   
-            "(or fetch_data.py for real data)"                     
-        )                                      
     parser.add_argument("--temp-max", type=float, required=True, help="forecasted high, °C")
     parser.add_argument("--temp-min", type=float, required=True, help="forecasted low, °C")
     parser.add_argument("--humidity", type=float, required=True, help="forecasted mean relative humidity, %%")
@@ -99,8 +92,15 @@ def main():
                               "last date in the processed data file")
     args = parser.parse_args()
 
+    if not PROCESSED_FILE.exists():
+        sys.exit(
+            f"Processed data not found at {PROCESSED_FILE}.\n"
+            "Run: python src/simulate_data.py  "
+            "(or fetch_data.py for real data)"
+        )
     model, meta = load_model()
     history = pd.read_csv(PROCESSED_FILE, parse_dates=["date"])
+    ...
 
     as_of_date = pd.Timestamp(args.date) if args.date else history["date"].max()
 
