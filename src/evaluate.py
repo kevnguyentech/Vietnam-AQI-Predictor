@@ -22,7 +22,7 @@ import shap
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from xgboost import XGBClassifier
 
-from config import MODELS_DIR, OUTPUTS_DIR, AQI_LABELS
+from config import MODELS_DIR, OUTPUTS_DIR, AQI_LABELS, TEST_PREDICTIONS_FILE
 from model_io import load_model
 
 
@@ -95,7 +95,7 @@ def plot_shap_summary(model: XGBClassifier, X: pd.DataFrame):
 
 def main():
     model, meta = load_model()
-    test_predictions_path = MODELS_DIR / "test_predictions.csv"
+    test_predictions_path = TEST_PREDICTIONS_FILE
     if not test_predictions_path.exists():
         sys.exit(
             f"Test predictions not found at {test_predictions_path}.\n"

@@ -38,7 +38,7 @@ from xgboost import XGBClassifier
 
 from config import (
     FEATURES_FILE, MODEL_FILE, MODEL_META_FILE, AQI_LABELS,
-    TEST_HOLDOUT_DAYS, RANDOM_SEED,
+    TEST_HOLDOUT_DAYS, RANDOM_SEED, TEST_PREDICTIONS_FILE,
 )
 
 
@@ -149,7 +149,7 @@ def main():
     # Saved separately for evaluate.py / predict.py so neither script
     # has to redo the train/test split or recompute weights.
     X_test.assign(date=test_dates.values, target=y_test.values, pred=preds) \
-        .to_csv(MODEL_FILE.parent / "test_predictions.csv", index=False)
+        .to_csv(TEST_PREDICTIONS_FILE, index=False)
 
     print(f"\nSaved model -> {MODEL_FILE}")
     print(f"Saved metadata -> {MODEL_META_FILE}")

@@ -20,6 +20,7 @@ PROCESSED_FILE = DATA_PROCESSED / "aqi_weather_daily.csv"
 FEATURES_FILE = DATA_PROCESSED / "features.csv"
 MODEL_FILE = MODELS_DIR / "aqi_model.json"
 MODEL_META_FILE = MODELS_DIR / "model_meta.pkl"
+TEST_PREDICTIONS_FILE = MODELS_DIR / "test_predictions.csv"
 
 # ---- location ----------------------------------------------------------
 # Central Hanoi. OpenAQ location search and Open-Meteo archive both
