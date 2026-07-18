@@ -112,7 +112,7 @@ def simulate(start: str, end: str, seed: int = RANDOM_SEED) -> pd.DataFrame:
                 burst_active = False
         elif in_burn_window[t] and rng.random() < 0.035:
             burst_active = True
-            burst_remaining = rng.integers(3, 7)
+            burst_remaining = rng.integers(3, 7) - 1  # -1: start day is day 1 of the burst
             burst_mult = rng.uniform(1.3, 1.7)
             burst_multipliers[t] = burst_mult
 
