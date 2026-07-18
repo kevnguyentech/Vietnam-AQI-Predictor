@@ -42,6 +42,12 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
     the forecast dict standing in for "tomorrow's weather."
     """
     hist = history[history["date"] <= as_of_date].sort_values("date")
+    # Mirror features.py: reindex to full daily calendar so lag indices
+    # correspond to calendar positions. A missing day becomes a NaN row
+    # rather than silently shifting every subsequent lag by one.
+    if len(hist) > 0:
+        full_range = pd.date_range(hist["date"].min(), as_of_date, freq="D")
+        hist = hist.set_index("date").reindex(full_range).rename_axis("date").reset_index()
     min_history = max(max(LAG_DAYS) + 1, ROLLING_WINDOW)
     if len(hist) < min_history:
         raise ValueError(

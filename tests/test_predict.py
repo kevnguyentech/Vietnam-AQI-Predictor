@@ -3,6 +3,7 @@ import sys
 
 import pandas as pd
 import pytest
+import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -82,3 +83,26 @@ def test_load_model_missing_model_file_exits(tmp_path, monkeypatch):
     monkeypatch.setattr(model_io, "MODEL_FILE", tmp_path / "no_model.json")
     with pytest.raises(SystemExit):
         model_io.load_model()
+
+
+def test_live_lag_with_gap_matches_training(toy_df):
+    # Drop Jan 20 to create a one-day gap in a 30-day run
+    dates = pd.date_range("2024-01-01", periods=30)
+    df = pd.DataFrame({
+        "date": dates,
+        "pm25": [float(10 + i) for i in range(30)],
+        "temp_max": [25.0] * 30, "temp_min": [15.0] * 30,
+        "precipitation": [0.0] * 30, "wind_speed": [5.0] * 30,
+        "humidity": [60.0] * 30,
+    })
+    df_gap = df[df["date"] != pd.Timestamp("2024-01-20")].reset_index(drop=True)
+
+    forecast = {"temp_max": 25.0, "temp_min": 15.0,
+                "precipitation": 0.0, "wind_speed": 5.0, "humidity": 60.0}
+    # Jan 21 is 1 day after the gap; pm25_lag_1 looks 1 day back = Jan 20 (missing).
+    # Without reindexing, predict.py returns pm25[Jan19] instead of NaN.
+    live_row, _ = build_live_feature_row(df_gap, pd.Timestamp("2024-01-21"), forecast)
+    assert np.isnan(live_row["pm25_lag_1"].values[0]), (
+        "pm25_lag_1 for the day after a gap should be NaN; "
+        "without reindexing, predict.py returns pm25[Jan19] instead"
+    )
