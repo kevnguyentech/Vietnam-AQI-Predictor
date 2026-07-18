@@ -66,6 +66,9 @@ def test_insufficient_history_raises(toy_df):
     
 def test_load_model_missing_meta_exits(tmp_path, monkeypatch):
     import model_io
+    fake_model = tmp_path / "aqi_model.json"
+    fake_model.touch()  # exists, so MODEL_FILE check passes
+    monkeypatch.setattr(model_io, "MODEL_FILE", fake_model)
     monkeypatch.setattr(model_io, "MODEL_META_FILE", tmp_path / "no_meta.pkl")
     with pytest.raises(SystemExit):
         model_io.load_model()
