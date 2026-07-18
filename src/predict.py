@@ -106,7 +106,6 @@ def main():
         )
     model, meta = load_model()
     history = pd.read_csv(PROCESSED_FILE, parse_dates=["date"])
-    ...
 
     as_of_date = pd.Timestamp(args.date) if args.date else history["date"].max()
 
