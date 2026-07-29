@@ -18,3 +18,11 @@ outputs/*
 !models/.gitkeep
 !outputs/.gitkeep
 !outputs/*.png
+
+# Stray ML artifacts if paths ever change
+*.pkl
+*.joblib
+
+# Logs
+*.log
+logs/
