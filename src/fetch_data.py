@@ -160,7 +160,23 @@ def fetch_weather_daily(date_from: str, date_to: str) -> pd.DataFrame:
     }
     r = requests.get(OPENMETEO_BASE, params=params, timeout=30)
     r.raise_for_status()
-    daily = r.json()["daily"]
+    payload = r.json()
+    if "daily" not in payload:
+        raise RuntimeError(
+            f"Open-Meteo returned no 'daily' key. Response: {payload.get('reason', payload)}"
+        )
+    daily = payload["daily"]
+    expected_vars = [
+        "temperature_2m_max", "temperature_2m_min",
+        "precipitation_sum", "windspeed_10m_max",
+        "relative_humidity_2m_mean",
+    ]
+    missing = [v for v in expected_vars if v not in daily]
+    if missing:
+        raise RuntimeError(
+            f"Open-Meteo response missing expected variables: {missing}. "
+            "Check variable names against https://open-meteo.com/en/docs/historical-weather-api"
+        )
     df = pd.DataFrame(daily)
     df["date"] = pd.to_datetime(df["time"])
     df = df.drop(columns=["time"])
