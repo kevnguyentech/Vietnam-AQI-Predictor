@@ -108,6 +108,16 @@ def main():
     history = pd.read_csv(PROCESSED_FILE, parse_dates=["date"])
 
     as_of_date = pd.Timestamp(args.date) if args.date else history["date"].max()
+    real_today = pd.Timestamp("today").normalize()
+    if (real_today - as_of_date).days > 7:
+        import sys as _sys
+        print(
+            f"Warning: data file ends on {as_of_date.date()}, which is "
+            f"{(real_today - as_of_date).days} days ago. Predictions are based on "
+            f"stale history. Run fetch_data.py to update, or pass "
+            f"--date {real_today.date()} with current PM2.5 readings appended.",
+            file=_sys.stderr,
+        )
 
     forecast = {
         "temp_max": args.temp_max, "temp_min": args.temp_min,
