@@ -26,7 +26,6 @@ some date, train before, test after.
 """
 
 import argparse
-import json
 
 import joblib
 import numpy as np
