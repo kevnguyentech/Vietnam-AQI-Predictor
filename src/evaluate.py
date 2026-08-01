@@ -22,7 +22,7 @@ import shap
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from xgboost import XGBClassifier
 
-from config import MODELS_DIR, OUTPUTS_DIR, AQI_LABELS, TEST_PREDICTIONS_FILE
+from config import OUTPUTS_DIR, AQI_LABELS, TEST_PREDICTIONS_FILE
 from model_io import load_model
 
 
