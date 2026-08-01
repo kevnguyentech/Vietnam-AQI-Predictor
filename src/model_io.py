@@ -3,6 +3,8 @@ Shared model loading logic for predict.py and evaluate.py.
 Keeping it here means one place to update if the save format changes.
 """
 
+from __future__ import annotations
+
 import sys
 
 import joblib

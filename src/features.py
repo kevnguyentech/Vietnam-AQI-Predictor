@@ -26,6 +26,7 @@ not the ground truth, to avoid a train/serve skew where the model
 learns to expect more accurate "forecasts" than it'll get in
 production.
 """
+from __future__ import annotations
 
 import argparse
 
