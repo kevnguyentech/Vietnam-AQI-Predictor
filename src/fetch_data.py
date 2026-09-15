@@ -80,13 +80,13 @@ def find_pm25_sensor(api_key: str, radius_m: int = 25_000) -> dict:
             return None
         return pd.Timestamp(last) - pd.Timestamp(first)
 
-    candidates = [r for r in results if pm25_sensor(r) is not None]
+    candidates = [st for st in results if pm25_sensor(st) is not None]
     if not candidates:
         raise RuntimeError(
             f"None of the {len(results)} nearby stations have a pm25 sensor."
         )
 
-    spans = [(r, history_span(r)) for r in candidates]
+    spans = [(st, history_span(st)) for st in candidates]
     if any(span is not None for _, span in spans):
         station = max(spans, key=lambda pair: pair[1] or pd.Timedelta(0))[0]
     else:
@@ -136,6 +136,16 @@ def fetch_pm25_daily(api_key: str, sensor_id: int, date_from: str, date_to: str)
             break
         page += 1
         time.sleep(0.2)  # be polite to the rate limiter
+
+    if not all_rows:
+        # Without this, the empty frame below has no columns at all and the
+        # next line dies with a bare KeyError: 'date' — an unreadable way to
+        # report "your key worked, the sensor just has no data for that range."
+        raise RuntimeError(
+            f"OpenAQ returned no daily PM2.5 rows for sensor {sensor_id} "
+            f"between {date_from} and {date_to}. Check that the range overlaps "
+            "the sensor's reporting period."
+        )
 
     df = pd.DataFrame(all_rows).drop_duplicates(subset="date")
     df["date"] = pd.to_datetime(df["date"])

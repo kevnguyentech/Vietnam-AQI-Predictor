@@ -19,13 +19,13 @@ whatever the last row of that file says (2024-12-31), not the
 literal current date — see --date to override.
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 
-import joblib
 import numpy as np
 import pandas as pd
-from xgboost import XGBClassifier
 
 from config import (
     PROCESSED_FILE, AQI_LABELS, LAG_DAYS, ROLLING_WINDOW,
@@ -34,7 +34,7 @@ from model_io import load_model
 
 
 def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
-                            forecast: dict) -> pd.DataFrame:
+                            forecast: dict) -> tuple[pd.DataFrame, pd.Timestamp]:
     """
     Mirrors features.py exactly, but for a single live row instead of
     a full historical table — same lag/rolling logic, computed from
@@ -42,6 +42,24 @@ def build_live_feature_row(history: pd.DataFrame, as_of_date: pd.Timestamp,
     the forecast dict standing in for "tomorrow's weather."
     """
     hist = history[history["date"] <= as_of_date].sort_values("date")
+
+    # "Today" has to have an actual reading. Without this check, an
+    # as_of_date past the end of the file still passes the length check
+    # below: the reindex pads the gap with empty rows, so the row count
+    # looks fine while every lag/rolling feature comes out NaN. XGBoost
+    # treats NaN as missing and routes it down a default branch, so the
+    # CLI prints a confident category derived from no PM2.5 data at all.
+    # An interior gap is a different case and still yields NaN features
+    # on purpose, mirroring the rows features.py drops during training.
+    measured = hist[hist["pm25"].notna()]
+    if len(measured) == 0 or measured["date"].max() < as_of_date:
+        last = measured["date"].max().date() if len(measured) else "no readings at all"
+        raise ValueError(
+            f"No PM2.5 reading for {as_of_date.date()} (latest available: {last}). "
+            "Append current readings to the processed data file before predicting "
+            "from that date, or pass a --date the file actually covers."
+        )
+
     # Mirror features.py: reindex to full daily calendar so lag indices
     # correspond to calendar positions. A missing day becomes a NaN row
     # rather than silently shifting every subsequent lag by one.
@@ -107,12 +125,18 @@ def main():
     model, meta = load_model()
     history = pd.read_csv(PROCESSED_FILE, parse_dates=["date"])
 
-    as_of_date = pd.Timestamp(args.date) if args.date else history["date"].max()
+    # Staleness is a property of the data file, not of as_of_date. Checking
+    # as_of_date instead meant passing --date <today> against a months-old
+    # CSV silenced the warning, which is precisely the case that needs it —
+    # and printed "data file ends on <as_of_date>", which wasn't true either.
+    data_end = history["date"].max()
+    as_of_date = pd.Timestamp(args.date) if args.date else data_end
     real_today = pd.Timestamp("today").normalize()
-    if (real_today - as_of_date).days > 7:
+    stale_days = (real_today - data_end).days
+    if stale_days > 7:
         print(
-            f"Warning: data file ends on {as_of_date.date()}, which is "
-            f"{(real_today - as_of_date).days} days ago. Predictions are based on "
+            f"Warning: data file ends on {data_end.date()}, which is "
+            f"{stale_days} days ago. Predictions are based on "
             f"stale history. Run fetch_data.py to update, or pass "
             f"--date {real_today.date()} with current PM2.5 readings appended.",
             file=sys.stderr,
@@ -123,7 +147,14 @@ def main():
         "humidity": args.humidity, "wind_speed": args.wind_speed,
         "precipitation": args.precipitation,
     }
-    X_live, target_date = build_live_feature_row(history, as_of_date, forecast)
+    # build_live_feature_row raises ValueError so it stays usable as a
+    # library function (tests assert on it); the CLI turns that into the
+    # same one-line exit the missing-data/missing-model paths above use,
+    # rather than dumping a traceback at someone checking tomorrow's air.
+    try:
+        X_live, target_date = build_live_feature_row(history, as_of_date, forecast)
+    except ValueError as e:
+        sys.exit(str(e))
     X_live = X_live[meta["feature_cols"]]  # enforce exact training column order
 
     probs = model.predict_proba(X_live)[0]

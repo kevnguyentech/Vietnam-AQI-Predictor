@@ -1,4 +1,7 @@
-﻿certifi==2026.6.17
+# Requires Python 3.12 or newer: scipy 1.18.0 declares requires-python
+# >=3.12, so `pip install -r requirements.txt` fails to resolve on 3.11
+# and below with a misleading 'no matching distribution' error.
+certifi==2026.6.17
 charset-normalizer==3.4.7
 cloudpickle==3.1.2
 colorama==0.4.6

@@ -106,3 +106,31 @@ def test_live_lag_with_gap_matches_training(toy_df):
         "pm25_lag_1 for the day after a gap should be NaN; "
         "without reindexing, predict.py returns pm25[Jan19] instead"
     )
+
+def test_as_of_date_past_end_of_history_raises(toy_df):
+    """
+    Regression test for a silent-garbage bug: as_of_date beyond the last
+    available reading (e.g. --date set to the real calendar date against a
+    stale CSV) used to pass the length check, because reindexing to the
+    full daily calendar padded the gap with empty rows. Every lag/rolling
+    feature came out NaN, XGBoost routed NaN down its default branches,
+    and predict.py printed a ~100%-confidence category built from no data.
+    """
+    forecast = {"temp_max": 30, "temp_min": 20, "precipitation": 0,
+                "wind_speed": 5, "humidity": 60}
+    # toy_df ends 2024-01-20; ask for a date well past it
+    with pytest.raises(ValueError, match="No PM2.5 reading"):
+        build_live_feature_row(toy_df, pd.Timestamp("2024-06-01"), forecast)
+
+
+def test_as_of_date_on_a_missing_day_raises(toy_df):
+    """
+    Same guard, narrower case: as_of_date itself falls in a gap. "Today"
+    has no reading, so there is nothing to build today's features from —
+    features.py would have dropped that row during training too.
+    """
+    gapped = toy_df[toy_df["date"] != pd.Timestamp("2024-01-15")]
+    forecast = {"temp_max": 30, "temp_min": 20, "precipitation": 0,
+                "wind_speed": 5, "humidity": 60}
+    with pytest.raises(ValueError, match="No PM2.5 reading"):
+        build_live_feature_row(gapped, pd.Timestamp("2024-01-15"), forecast)

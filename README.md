@@ -17,6 +17,8 @@ if you're here to learn the patterns rather than just the result.
 
 ## Quick start
 
+Requires Python 3.12+ (the pinned `scipy` declares `requires-python >=3.12`).
+
 ```bash
 pip install -r requirements.txt
 cd src
@@ -189,8 +191,22 @@ vietnam-aqi-predictor/
 │   └── processed/          # joined daily table + engineered features
 ├── models/                 # saved XGBoost model + metadata
 ├── outputs/                 # confusion_matrix.png, shap_summary.png, shap_by_class.png
+├── tests/                   # feature-engineering and train/serve-skew regression tests
+├── conftest.py              # puts src/ on sys.path for pytest
 └── requirements.txt
 ```
+
+Run the tests from the repo root:
+
+```bash
+python -m pytest tests/ -v
+```
+
+They cover the leakage-safe framing (lag features pull from the previous
+day, the target is tomorrow's reading, raw `pm25` never enters the feature
+list) and the train/serve skew regressions described above - the live
+prediction path in `predict.py` has to produce byte-identical features to
+the training path in `features.py`, and the tests assert exactly that.
 
 ## Limitations and natural next steps
 
