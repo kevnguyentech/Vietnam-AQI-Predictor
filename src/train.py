@@ -28,7 +28,6 @@ some date, train before, test after.
 import argparse
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
 from sklearn.model_selection import TimeSeriesSplit
@@ -118,6 +117,15 @@ def main():
 
     # Final chronological split: last N days = test, everything else = train.
     # Computed before the CV check below so it never sees the held-out days.
+    # Guard first: a --test-days at or above the row count makes split_idx
+    # zero or negative, and iloc reads a negative index from the end — so
+    # asking for 900 test days on a 723-row table silently trained on 546
+    # and tested on 177, reporting that split as though it were requested.
+    if args.test_days >= len(df):
+        parser.error(
+            f"--test-days {args.test_days} leaves no training data: "
+            f"{args.input} has only {len(df)} rows. Use a value below {len(df)}."
+        )
     split_idx = len(df) - args.test_days
     X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
     y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
